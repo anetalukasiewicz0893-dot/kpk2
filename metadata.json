@@ -1,0 +1,5 @@
+{
+  "name": "LEI Investigator AI",
+  "description": "Global entity investigation console for searching, analyzing, and comparing legal entities using LEI data.",
+  "requestFramePermissions": []
+}
