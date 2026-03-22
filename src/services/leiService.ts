@@ -3,11 +3,15 @@ import { EntityCard, SearchMode } from "../types";
 export const searchEntities = async (query: string, mode: SearchMode): Promise<EntityCard[]> => {
   try {
     const response = await fetch(`/api/lei/search?query=${encodeURIComponent(query)}&mode=${mode}`);
-    if (!response.ok) throw new Error('API request failed');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `API request failed with status ${response.status}`);
+    }
     const rawApiData = await response.json();
 
-    // The GLEIF API returns data in a 'data' array (JSON:API format)
-    const records = rawApiData.data || [];
+    // The GLEIF API returns data in a 'data' array or object (JSON:API format)
+    const data = rawApiData.data;
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
     
     return records.map((record: any): EntityCard => {
       const attr = record.attributes;
@@ -60,6 +64,7 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
         sanctions_check: ["Not performed (AI disabled)"],
 
         registry_links: {
+          gleif_verify: `https://search.gleif.org/#/record/${attr.lei}`,
           companies_house: `https://find-and-update.company-information.service.gov.uk/search?q=${encodeURIComponent(entity.legalName?.name || "")}`,
           sec_edgar: `https://www.sec.gov/edgar/search/#/q=${encodeURIComponent(entity.legalName?.name || "")}`,
           bris: `https://e-justice.europa.eu/rei/search?query=${encodeURIComponent(entity.legalName?.name || "")}`,

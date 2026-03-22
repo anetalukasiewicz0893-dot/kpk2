@@ -38,6 +38,7 @@ export interface EntityCard {
   sanctions_check: string[];
 
   registry_links: {
+    gleif_verify: string;
     companies_house: string;
     sec_edgar: string;
     bris: string;

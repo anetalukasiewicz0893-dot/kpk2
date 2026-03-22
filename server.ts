@@ -24,15 +24,23 @@ async function startServer() {
       url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=10`;
     } else {
       // Use full-text search for partial mode
-      url = `https://api.gleif.org/api/v1/lei-records?q=${encodeURIComponent(query as string)}&page[size]=10`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodeURIComponent(query as string)}&page[size]=10`;
     }
 
     try {
       const response = await fetch(url);
+      if (response.status === 404) {
+        return res.json({ data: [] });
+      }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`GLEIF API Error (${response.status}):`, errorText);
+        return res.status(response.status).json({ error: "GLEIF API Error" });
+      }
       const data = await response.json();
       res.json(data);
     } catch (error) {
-      console.error("LEI API Error:", error);
+      console.error("LEI API Proxy Error:", error);
       res.status(500).json({ error: "Failed to fetch from GLEIF API" });
     }
   });

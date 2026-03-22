@@ -3,7 +3,7 @@ import { SearchRibbon } from './components/SearchRibbon';
 import { EntityCard } from './components/EntityCard';
 import { EntityCard as EntityCardType, SearchMode } from './types';
 import { searchEntities } from './services/leiService';
-import { Shield, AlertCircle, Search } from 'lucide-react';
+import { Shield, AlertCircle, Search, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -18,10 +18,10 @@ export default function App() {
       const cards = await searchEntities(query, mode);
       setResults(cards);
       if (cards.length === 0) {
-        setError("No entities found matching your search criteria.");
+        setError(">> ERROR: NO_ENTITIES_FOUND_IN_DATABASE <<");
       }
     } catch (err) {
-      setError("An error occurred while searching. Please try again.");
+      setError(">> CRITICAL_FAILURE: API_CONNECTION_LOST <<");
     } finally {
       setIsLoading(false);
     }
@@ -36,17 +36,17 @@ export default function App() {
   const handleSave = () => {
     const selected = results.filter(e => e.selected);
     if (selected.length === 0) {
-      alert("Please select at least one entity to save.");
+      alert(">> ERROR: NO_DATA_SELECTED_FOR_BACKUP <<");
       return;
     }
     const saved = JSON.parse(localStorage.getItem('saved_entities') || '[]');
     const newSaved = [...saved, ...selected.filter(s => !saved.find((e: any) => e.lei === s.lei))];
     localStorage.setItem('saved_entities', JSON.stringify(newSaved));
-    alert(`${selected.length} entities saved to local storage.`);
+    alert(`>> SUCCESS: ${selected.length} RECORDS_STORED_IN_LOCAL_CACHE <<`);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50">
+    <div className="min-h-screen flex flex-col">
       <SearchRibbon 
         onSearch={handleSearch} 
         onSave={handleSave}
@@ -58,13 +58,13 @@ export default function App() {
           {error ? (
             <motion.div
               key="error-state"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-700"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="mb-8 p-4 border-2 border-rose-500 bg-rose-500/10 flex items-center gap-3 text-rose-500 font-hacker text-xl tracking-tighter"
             >
-              <AlertCircle className="h-5 w-5" />
-              <p className="text-sm font-medium">{error}</p>
+              <AlertCircle className="h-6 w-6" />
+              <p>{error}</p>
             </motion.div>
           ) : results.length === 0 && !isLoading ? (
             <motion.div
@@ -74,27 +74,30 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-20 text-center"
             >
-              <div className="w-16 h-16 bg-white border border-neutral-200 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <Shield className="h-8 w-8 text-neutral-400" />
+              <div className="w-24 h-24 hacker-panel flex items-center justify-center mb-8 hacker-border animate-pulse">
+                <Terminal className="h-12 w-12 text-hacker-blue" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Global Entity Search</h2>
-              <p className="text-neutral-500 max-w-md mx-auto">
-                Search by name, partial name, or LEI number to find official legal entity identifiers.
+              <h2 className="text-4xl font-hacker hacker-glow mb-4 tracking-widest uppercase">Global Entity Investigator</h2>
+              <p className="text-hacker-blue/60 max-w-md mx-auto font-mono text-sm leading-relaxed">
+                [ SYSTEM_STATUS: ONLINE ]<br/>
+                [ ACCESS_LEVEL: RESTRICTED ]<br/>
+                Search by name or LEI to intercept legal entity records from the global mainframe.
               </p>
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl">
-                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left shadow-sm">
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
-                    <Search className="h-4 w-4 text-blue-600" />
+              
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl w-full">
+                <div className="hacker-panel p-6 text-left group hover:border-hacker-blue transition-all">
+                  <div className="w-10 h-10 border border-hacker-blue/30 flex items-center justify-center mb-4 group-hover:bg-hacker-blue/10">
+                    <Search className="h-5 w-5" />
                   </div>
-                  <h3 className="text-sm font-bold text-neutral-900 mb-1">Official Data</h3>
-                  <p className="text-xs text-neutral-500">Direct integration with the Global LEI Foundation (GLEIF) database.</p>
+                  <h3 className="text-lg font-hacker hacker-glow mb-2 uppercase">Raw Data Access</h3>
+                  <p className="text-xs text-hacker-blue/50 font-mono">Direct uplink to GLEIF central database. No filters, no AI, just raw legal identifiers.</p>
                 </div>
-                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left shadow-sm">
-                  <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center mb-3">
-                    <Shield className="h-4 w-4 text-emerald-600" />
+                <div className="hacker-panel p-6 text-left group hover:border-hacker-blue transition-all">
+                  <div className="w-10 h-10 border border-hacker-blue/30 flex items-center justify-center mb-4 group-hover:bg-hacker-blue/10">
+                    <Shield className="h-5 w-5" />
                   </div>
-                  <h3 className="text-sm font-bold text-neutral-900 mb-1">Entity Status</h3>
-                  <p className="text-xs text-neutral-500">Verify registration status, renewal dates, and legal addresses.</p>
+                  <h3 className="text-lg font-hacker hacker-glow mb-2 uppercase">Verification</h3>
+                  <p className="text-xs text-hacker-blue/50 font-mono">Verify registration status and renewal cycles across all global jurisdictions.</p>
                 </div>
               </div>
             </motion.div>
@@ -104,8 +107,12 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-4"
+              className="space-y-6"
             >
+              <div className="flex items-center gap-2 mb-4 font-hacker text-sm text-hacker-blue/40">
+                <Cpu className="h-4 w-4" />
+                <span>RECORDS_RETRIEVED: {results.length}</span>
+              </div>
               {results.map((entity, index) => (
                 <EntityCard 
                   key={`entity-${entity.id}-${index}`} 
@@ -118,18 +125,27 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="bg-white border-t border-neutral-200 py-6 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-neutral-400 text-xs">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="font-bold tracking-tight text-neutral-500 uppercase">LEI Search Console</span>
+      <footer className="bg-hacker-bg border-t-2 border-hacker-blue/20 py-8 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-hacker-blue/30 font-mono text-[10px] tracking-widest uppercase">
+          <div className="flex items-center gap-3">
+            <Shield className="h-5 w-5 opacity-50" />
+            <span className="hacker-glow text-hacker-blue/60">LEI_SEARCH_CONSOLE_V2.0</span>
           </div>
-          <div className="flex items-center gap-6">
-            <span>Data provided by GLEIF API</span>
-            <span>© 2026 Global Entity Search</span>
+          <div className="flex items-center gap-8">
+            <span className="hover:text-hacker-blue transition-colors cursor-help">SOURCE: GLEIF_MAIN_API</span>
+            <span className="hover:text-hacker-blue transition-colors cursor-help">ENCRYPTION: AES-256</span>
+            <span>© 2026 HACKER_CORP</span>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
+const Cpu = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+    <rect x="9" y="9" width="6" height="6" />
+    <path d="M15 2v2" /><path d="M15 20v2" /><path d="M2 15h2" /><path d="M2 9h2" /><path d="M20 15h2" /><path d="M20 9h2" /><path d="M9 2v2" /><path d="M9 20v2" />
+  </svg>
+);

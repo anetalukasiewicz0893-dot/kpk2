@@ -1,19 +1,74 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-hacker: "VT323", monospace;
+  
+  --color-hacker-blue: #00f2ff;
+  --color-hacker-bg: #000814;
+  --color-hacker-border: #003566;
 }
 
 @layer base {
   body {
-    @apply bg-neutral-50 text-neutral-900 font-sans;
+    @apply bg-hacker-bg text-hacker-blue font-mono selection:bg-hacker-blue selection:text-hacker-bg;
+    background-image: 
+      linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+    z-index: 9999;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    opacity: 0.3;
   }
 }
 
-.markdown-body h1 { @apply text-2xl font-bold mb-4; }
-.markdown-body h2 { @apply text-xl font-bold mb-3; }
-.markdown-body p { @apply mb-4 leading-relaxed; }
-.markdown-body ul { @apply list-disc pl-5 mb-4; }
-.markdown-body li { @apply mb-1; }
+.hacker-glow {
+  text-shadow: 0 0 5px var(--color-hacker-blue), 0 0 10px var(--color-hacker-blue);
+}
+
+.hacker-border {
+  border: 2px solid var(--color-hacker-blue);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.2), inset 0 0 10px rgba(0, 242, 255, 0.1);
+}
+
+.hacker-panel {
+  @apply bg-hacker-bg/80 backdrop-blur-sm border-2 border-hacker-blue/30 rounded-none;
+  box-shadow: 4px 4px 0px var(--color-hacker-border);
+}
+
+.hacker-button {
+  @apply px-4 py-2 border-2 border-hacker-blue text-hacker-blue uppercase font-hacker text-xl tracking-widest transition-all hover:bg-hacker-blue hover:text-hacker-bg hover:shadow-[0_0_20px_rgba(0,242,255,0.5)];
+}
+
+.hacker-input {
+  @apply bg-transparent border-2 border-hacker-blue/50 text-hacker-blue px-4 py-2 font-mono focus:border-hacker-blue focus:outline-none focus:ring-1 focus:ring-hacker-blue/50 placeholder:text-hacker-blue/30;
+}
+
+.hacker-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.hacker-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-hacker-bg);
+}
+.hacker-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-hacker-border);
+  border: 2px solid var(--color-hacker-bg);
+}
+.hacker-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-hacker-blue);
+}
