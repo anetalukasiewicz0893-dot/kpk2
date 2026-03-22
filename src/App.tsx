@@ -1,22 +1,15 @@
 import React, { useState } from 'react';
 import { SearchRibbon } from './components/SearchRibbon';
 import { EntityCard } from './components/EntityCard';
-import { ComparisonModal } from './components/ComparisonModal';
-import { EntityCard as EntityCardType, SearchMode, ComparisonView } from './types';
-import { searchEntities, generateComparisonSummary, performDeepInvestigation } from './services/leiService';
-import { Shield, AlertCircle, Loader2, Info, Search } from 'lucide-react';
+import { EntityCard as EntityCardType, SearchMode } from './types';
+import { searchEntities } from './services/leiService';
+import { Shield, AlertCircle, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { DeepInvestigationModal } from './components/DeepInvestigationModal';
 
 export default function App() {
   const [results, setResults] = useState<EntityCardType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [comparison, setComparison] = useState<ComparisonView | null>(null);
-  const [isComparing, setIsComparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [deepInvestigation, setDeepInvestigation] = useState<{ entity: EntityCardType; report: string | null } | null>(null);
-  const [isInvestigating, setIsInvestigating] = useState(false);
 
   const handleSearch = async (query: string, mode: SearchMode) => {
     setIsLoading(true);
@@ -40,36 +33,6 @@ export default function App() {
     ));
   };
 
-  const handleDeepInvestigate = async (entity: EntityCardType) => {
-    setDeepInvestigation({ entity, report: null });
-    setIsInvestigating(true);
-    try {
-      const report = await performDeepInvestigation(entity);
-      setDeepInvestigation({ entity, report });
-    } catch (err) {
-      alert("Deep investigation failed.");
-    } finally {
-      setIsInvestigating(false);
-    }
-  };
-
-  const handleCompare = async () => {
-    const selected = results.filter(e => e.selected);
-    if (selected.length < 2) {
-      alert("Please select at least 2 entities to compare.");
-      return;
-    }
-    setIsComparing(true);
-    try {
-      const result = await generateComparisonSummary(selected);
-      setComparison(result);
-    } catch (err) {
-      alert("Failed to generate comparison summary.");
-    } finally {
-      setIsComparing(false);
-    }
-  };
-
   const handleSave = () => {
     const selected = results.filter(e => e.selected);
     if (selected.length === 0) {
@@ -82,17 +45,11 @@ export default function App() {
     alert(`${selected.length} entities saved to local storage.`);
   };
 
-  const handleNotes = () => {
-    alert("Notes feature coming soon. Use the comparison summary for detailed assessments.");
-  };
-
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-neutral-50">
       <SearchRibbon 
         onSearch={handleSearch} 
         onSave={handleSave}
-        onCompare={handleCompare}
-        onNotes={handleNotes}
         isLoading={isLoading}
       />
 
@@ -117,35 +74,27 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-20 text-center"
             >
-              <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-white border border-neutral-200 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
                 <Shield className="h-8 w-8 text-neutral-400" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Global Entity Investigation Console</h2>
+              <h2 className="text-xl font-bold text-neutral-900 mb-2">Global Entity Search</h2>
               <p className="text-neutral-500 max-w-md mx-auto">
-                Search by name, partial name, or LEI number to begin your investigation. 
-                Analyze risk, check sanctions, and compare entities globally.
+                Search by name, partial name, or LEI number to find official legal entity identifiers.
               </p>
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl">
-                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left">
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl">
+                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left shadow-sm">
                   <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
                     <Search className="h-4 w-4 text-blue-600" />
                   </div>
-                  <h3 className="text-sm font-bold text-neutral-900 mb-1">Deep Search</h3>
-                  <p className="text-xs text-neutral-500">Access Global LEI records with real-time API integration.</p>
+                  <h3 className="text-sm font-bold text-neutral-900 mb-1">Official Data</h3>
+                  <p className="text-xs text-neutral-500">Direct integration with the Global LEI Foundation (GLEIF) database.</p>
                 </div>
-                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left">
-                  <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center mb-3">
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                  </div>
-                  <h3 className="text-sm font-bold text-neutral-900 mb-1">Risk Scoring</h3>
-                  <p className="text-xs text-neutral-500">Automated risk assessment based on status and jurisdiction.</p>
-                </div>
-                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left">
+                <div className="p-4 bg-white border border-neutral-200 rounded-xl text-left shadow-sm">
                   <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center mb-3">
-                    <Info className="h-4 w-4 text-emerald-600" />
+                    <Shield className="h-4 w-4 text-emerald-600" />
                   </div>
-                  <h3 className="text-sm font-bold text-neutral-900 mb-1">AI Insights</h3>
-                  <p className="text-xs text-neutral-500">Generate professional KYC summaries and comparisons.</p>
+                  <h3 className="text-sm font-bold text-neutral-900 mb-1">Entity Status</h3>
+                  <p className="text-xs text-neutral-500">Verify registration status, renewal dates, and legal addresses.</p>
                 </div>
               </div>
             </motion.div>
@@ -162,7 +111,6 @@ export default function App() {
                   key={`entity-${entity.id}-${index}`} 
                   entity={entity} 
                   onToggleSelect={toggleSelect} 
-                  onDeepInvestigate={handleDeepInvestigate}
                 />
               ))}
             </motion.div>
@@ -170,41 +118,15 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {comparison && (
-        <ComparisonModal 
-          comparison={comparison} 
-          onClose={() => setComparison(null)} 
-        />
-      )}
-
-      {deepInvestigation && (
-        <DeepInvestigationModal
-          entityName={deepInvestigation.entity.legal_name}
-          report={deepInvestigation.report}
-          isLoading={isInvestigating}
-          onClose={() => setDeepInvestigation(null)}
-        />
-      )}
-
-      {isComparing && (
-        <div className="fixed inset-0 z-[110] bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center">
-            <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-            <h3 className="text-lg font-bold text-neutral-900">Analyzing Entities...</h3>
-            <p className="text-sm text-neutral-500">Generating AI comparison summary and risk assessment.</p>
-          </div>
-        </div>
-      )}
-
       <footer className="bg-white border-t border-neutral-200 py-6 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-neutral-400 text-xs">
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            <span className="font-bold tracking-tight text-neutral-500">LEI INVESTIGATOR AI</span>
+            <span className="font-bold tracking-tight text-neutral-500 uppercase">LEI Search Console</span>
           </div>
           <div className="flex items-center gap-6">
-            <span>Powered by Global LEI API (GLEIF)</span>
-            <span>© 2026 Global Entity Investigation Console</span>
+            <span>Data provided by GLEIF API</span>
+            <span>© 2026 Global Entity Search</span>
           </div>
         </div>
       </footer>

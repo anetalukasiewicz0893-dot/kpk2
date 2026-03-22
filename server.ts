@@ -20,8 +20,10 @@ async function startServer() {
     let url = "";
     if (mode === "lei") {
       url = `https://api.gleif.org/api/v1/lei-records/${query}`;
+    } else if (mode === "name") {
+      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=10`;
     } else {
-      // Use full-text search for name and partial modes, limit to 10 results
+      // Use full-text search for partial mode
       url = `https://api.gleif.org/api/v1/lei-records?q=${encodeURIComponent(query as string)}&page[size]=10`;
     }
 
