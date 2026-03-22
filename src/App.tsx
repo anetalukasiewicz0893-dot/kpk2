@@ -21,7 +21,7 @@ export default function App() {
         setError(">> ERROR: NO_ENTITIES_FOUND_IN_DATABASE <<");
       }
     } catch (err) {
-      setError(">> CRITICAL_FAILURE: API_CONNECTION_LOST <<");
+      setError(`>> CRITICAL_FAILURE: ${err instanceof Error ? err.message : 'UNKNOWN_ERROR'} <<`);
     } finally {
       setIsLoading(false);
     }

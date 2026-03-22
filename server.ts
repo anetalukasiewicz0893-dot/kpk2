@@ -28,14 +28,26 @@ async function startServer() {
     }
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'LEI-Investigator-App/1.0',
+          'Accept': 'application/vnd.api+json'
+        }
+      });
       if (response.status === 404) {
         return res.json({ data: [] });
       }
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`GLEIF API Error (${response.status}):`, errorText);
-        return res.status(response.status).json({ error: "GLEIF API Error" });
+        let errorMessage = "GLEIF API Error";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.errors?.[0]?.title || errorJson.error || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        return res.status(response.status).json({ error: errorMessage });
       }
       const data = await response.json();
       res.json(data);
