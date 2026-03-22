@@ -59,7 +59,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({ entity, onToggleSelect }
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 border-y border-hacker-blue/10 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 border-y border-hacker-blue/10 py-6">
           <div className="space-y-4">
             <h4 className="text-[10px] font-hacker text-hacker-blue/60 uppercase tracking-[0.3em] flex items-center gap-2">
               <MapPin className="h-3 w-3" />
@@ -101,16 +101,45 @@ export const EntityCard: React.FC<EntityCardProps> = ({ entity, onToggleSelect }
           <div className="space-y-4">
             <h4 className="text-[10px] font-hacker text-hacker-blue/60 uppercase tracking-[0.3em] flex items-center gap-2">
               <AlertTriangle className="h-3 w-3" />
+              RISK_LEVELS
+            </h4>
+            <div className="space-y-3 font-mono text-[10px]">
+              <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
+                <span className="text-hacker-blue/30">STATUS_RISK</span>
+                <span className={entity.risk.entity_status_risk === 'High' ? 'text-rose-500' : entity.risk.entity_status_risk === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}>
+                  {entity.risk.entity_status_risk}
+                </span>
+              </div>
+              <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
+                <span className="text-hacker-blue/30">COUNTRY_RISK</span>
+                <span className={entity.risk.country_risk === 'High' ? 'text-rose-500' : 'text-emerald-500'}>
+                  {entity.risk.country_risk}
+                </span>
+              </div>
+              <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
+                <span className="text-hacker-blue/30">SANCTIONS</span>
+                <span className={entity.risk.sanctions_risk === 'High' ? 'text-rose-500' : entity.risk.sanctions_risk === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}>
+                  {entity.risk.sanctions_risk}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-hacker text-hacker-blue/60 uppercase tracking-[0.3em] flex items-center gap-2">
+              <Cpu className="h-3 w-3" />
               SYSTEM_METRICS
             </h4>
             <div className="space-y-3 font-mono text-[10px]">
               <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
                 <span className="text-hacker-blue/30">REG_AUTH</span>
-                <span className="text-hacker-blue/90 truncate max-w-[120px]">{entity.registration_authority}</span>
+                <span className="text-hacker-blue/90 truncate max-w-[80px]">{entity.registration_authority}</span>
               </div>
               <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
-                <span className="text-hacker-blue/30">ENTITY_TYPE</span>
-                <span className="text-hacker-blue/90">{entity.entity_category}</span>
+                <span className="text-hacker-blue/30">OVERALL</span>
+                <span className={`font-bold ${entity.risk.overall_score === 'High' ? 'text-rose-500' : entity.risk.overall_score === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                  {entity.risk.overall_score}
+                </span>
               </div>
               <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
                 <span className="text-hacker-blue/30">INTEGRITY</span>

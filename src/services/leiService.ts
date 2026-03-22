@@ -24,6 +24,38 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
         return `${lines.join(", ")}, ${addr.city}, ${addr.country}`;
       };
 
+      const calculateRisk = () => {
+        const highRiskCountries = ['AF', 'KP', 'IR', 'SY', 'YE', 'SS', 'MM', 'LY', 'SO'];
+        const status = reg.registrationStatus;
+        const country = entity.legalAddress?.country;
+        
+        let statusRisk: "Low" | "Medium" | "High" = "Low";
+        if (status === "LAPSED") statusRisk = "Medium";
+        if (["RETIRED", "ANNULLED", "CANCELLED", "PENDING_TRANSFER", "PENDING_ARCHIVAL"].includes(status)) statusRisk = "High";
+
+        const countryRisk: "Low" | "Medium" | "High" = highRiskCountries.includes(country) ? "High" : "Low";
+        
+        // Sanctions risk is a placeholder since we don't have a real sanctions API
+        // We flag it as Medium if the entity is unstable or in a high risk country
+        let sanctionsRisk: "Low" | "Medium" | "High" = "Low";
+        if (statusRisk === "High" || countryRisk === "High") sanctionsRisk = "High";
+        else if (statusRisk === "Medium") sanctionsRisk = "Medium";
+
+        let overall: "Low" | "Medium" | "High" = "Low";
+        if (statusRisk === "High" || countryRisk === "High" || sanctionsRisk === "High") {
+          overall = "High";
+        } else if (statusRisk === "Medium" || sanctionsRisk === "Medium") {
+          overall = "Medium";
+        }
+
+        return {
+          entity_status_risk: statusRisk,
+          country_risk: countryRisk,
+          sanctions_risk: sanctionsRisk,
+          overall_score: overall
+        };
+      };
+
       return {
         type: "entity_card",
         id: record.id,
@@ -54,14 +86,9 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
           next_renewal: reg.nextRenewalDate || "N/A"
         },
 
-        risk: {
-          entity_status_risk: reg.registrationStatus === "ISSUED" ? "Low" : "High",
-          country_risk: "Low",
-          sanctions_risk: "Low",
-          overall_score: reg.registrationStatus === "ISSUED" ? "Low" : "Medium"
-        },
+        risk: calculateRisk(),
 
-        sanctions_check: ["Not performed (AI disabled)"],
+        sanctions_check: ["Manual verification required for high-risk jurisdictions"],
 
         registry_links: {
           gleif_verify: `https://search.gleif.org/#/record/${attr.lei}`,
