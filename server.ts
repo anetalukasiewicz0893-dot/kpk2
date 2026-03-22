@@ -22,10 +22,10 @@ async function startServer() {
     if (mode === "lei") {
       url = `https://api.gleif.org/api/v1/lei-records/${query}?include=${includes}`;
     } else if (mode === "name") {
-      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=10&include=${includes}`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=100&include=${includes}`;
     } else {
       // Use full-text search for partial mode
-      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodeURIComponent(query as string)}&page[size]=10&include=${includes}`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodeURIComponent(query as string)}&page[size]=100&include=${includes}`;
     }
 
     try {

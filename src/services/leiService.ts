@@ -117,12 +117,3 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
     throw error;
   }
 };
-
-// These were AI powered, removing their functionality as requested
-export const generateComparisonSummary = async (): Promise<any> => {
-  throw new Error("AI Comparison is disabled.");
-};
-
-export const performDeepInvestigation = async (): Promise<string> => {
-  return "Deep investigation is disabled (AI features removed).";
-};
