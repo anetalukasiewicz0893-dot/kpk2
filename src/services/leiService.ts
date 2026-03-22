@@ -9,12 +9,22 @@ You DO NOT call APIs yourself.
 You ONLY receive rawApiData from the backend, which has already fetched the Global LEI API or other public data sources.
 
 Your job is to:
-- Parse rawApiData
+- Parse rawApiData (which follows JSON:API structure from GLEIF)
 - Extract entity information
 - Format results as selectable entity cards
 - Support saving and comparison
 - Generate structured JSON for UI rendering
 - Produce clean, consistent, investigator‑friendly output
+
+====================================================
+OUTPUT STRUCTURE BY ACTION
+====================================================
+ACTION: "search"
+Return a JSON ARRAY of entity cards.
+Example: [ { "type": "entity_card", ... }, { "type": "entity_card", ... } ]
+
+ACTION: "view_comparison"
+Return a JSON OBJECT following the COMPARISON_VIEW format.
 
 ====================================================
 ENTITY CARD FORMAT
@@ -130,7 +140,7 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
     const rawApiData = await response.json();
 
     const aiResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: JSON.stringify({
         action: "search",
         searchMode: mode,
@@ -142,18 +152,39 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
       }
     });
 
-    const result = JSON.parse(aiResponse.text || "[]");
-    return Array.isArray(result) ? result : [result];
+    const text = aiResponse.text || "[]";
+    try {
+      // Clean up potential markdown blocks if the model ignored the instruction
+      const jsonStr = text.replace(/```json\n?|```/g, "").trim();
+      let result = JSON.parse(jsonStr);
+      
+      // Handle cases where AI might wrap the array in an object
+      if (!Array.isArray(result) && result.results) {
+        result = result.results;
+      } else if (!Array.isArray(result) && result.entities) {
+        result = result.entities;
+      }
+      
+      const cards = Array.isArray(result) ? result : [result];
+      // Ensure each card has a unique ID
+      return cards.map((card, idx) => ({
+        ...card,
+        id: card.id || `entity-${Date.now()}-${idx}`
+      }));
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", text);
+      throw new Error("The AI returned an invalid response format.");
+    }
   } catch (error) {
-    console.error("Search failed", error);
-    return [];
+    console.error("Search failed:", error);
+    throw error; // Throw so App.tsx can catch and show error state
   }
 };
 
 export const generateComparisonSummary = async (entities: EntityCard[]): Promise<ComparisonView> => {
   try {
     const aiResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: JSON.stringify({
         action: "view_comparison",
         rawApiData: { entities }
@@ -164,9 +195,16 @@ export const generateComparisonSummary = async (entities: EntityCard[]): Promise
       }
     });
 
-    return JSON.parse(aiResponse.text || "{}");
+    const text = aiResponse.text || "{}";
+    try {
+      const jsonStr = text.replace(/```json\n?|```/g, "").trim();
+      return JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error("Failed to parse comparison summary:", text);
+      throw new Error("The AI failed to generate a valid comparison report.");
+    }
   } catch (error) {
-    console.error("Comparison failed", error);
+    console.error("Comparison failed:", error);
     throw error;
   }
 };
@@ -184,7 +222,7 @@ export const performDeepInvestigation = async (entity: EntityCard): Promise<stri
     Provide a concise, professional KYC-style report in Markdown.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
