@@ -109,10 +109,28 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-2 mb-4 font-hacker text-sm text-hacker-blue/40">
-                <Cpu className="h-4 w-4" />
-                <span>RECORDS_RETRIEVED: {results.length}</span>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 p-4 hacker-panel border-hacker-blue/20 bg-hacker-blue/5">
+                <div className="flex items-center gap-2 font-hacker text-sm text-hacker-blue/60">
+                  <Cpu className="h-4 w-4" />
+                  <span>RECORDS_RETRIEVED: {results.length}</span>
+                </div>
+                
+                <div className="flex flex-wrap gap-4 font-mono text-[10px] uppercase tracking-widest">
+                  <div className="flex items-center gap-2">
+                    <span className="text-hacker-blue/30">HIGH_RISK:</span>
+                    <span className="text-rose-500 font-bold">{results.filter(r => r.risk.overall_score === 'High').length}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-hacker-blue/30">MEDIUM_RISK:</span>
+                    <span className="text-amber-500 font-bold">{results.filter(r => r.risk.overall_score === 'Medium').length}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-hacker-blue/30">LOW_RISK:</span>
+                    <span className="text-emerald-500 font-bold">{results.filter(r => r.risk.overall_score === 'Low').length}</span>
+                  </div>
+                </div>
               </div>
+
               {results.map((entity, index) => (
                 <EntityCard 
                   key={`entity-${entity.id}-${index}`} 

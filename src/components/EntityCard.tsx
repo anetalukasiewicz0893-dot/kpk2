@@ -136,15 +136,9 @@ export const EntityCard: React.FC<EntityCardProps> = ({ entity, onToggleSelect }
                 <span className="text-hacker-blue/90 truncate max-w-[80px]">{entity.registration_authority}</span>
               </div>
               <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
-                <span className="text-hacker-blue/30">OVERALL</span>
+                <span className="text-hacker-blue/30">OVERALL_SCORE</span>
                 <span className={`font-bold ${entity.risk.overall_score === 'High' ? 'text-rose-500' : entity.risk.overall_score === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
                   {entity.risk.overall_score}
-                </span>
-              </div>
-              <div className="flex justify-between items-center border-b border-hacker-blue/5 pb-1">
-                <span className="text-hacker-blue/30">INTEGRITY</span>
-                <span className={isIssued ? 'text-emerald-500' : 'text-rose-500'}>
-                  {isIssued ? 'VERIFIED' : 'UNSTABLE'}
                 </span>
               </div>
             </div>

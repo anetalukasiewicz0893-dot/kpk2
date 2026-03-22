@@ -19,14 +19,18 @@ async function startServer() {
 
     let url = "";
     const includes = "direct-parent,ultimate-parent";
+    const encodedQuery = encodeURIComponent(query as string);
+
     if (mode === "lei") {
-      url = `https://api.gleif.org/api/v1/lei-records/${query}?include=${includes}`;
+      url = `https://api.gleif.org/api/v1/lei-records/${encodedQuery}?include=${includes}`;
     } else if (mode === "name") {
-      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=100&include=${includes}`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodedQuery}&page[size]=100&include=${includes}`;
     } else {
       // Use full-text search for partial mode
-      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodeURIComponent(query as string)}&page[size]=100&include=${includes}`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodedQuery}&page[size]=100&include=${includes}`;
     }
+
+    console.log(`[PROXY] Fetching from GLEIF: ${url}`);
 
     try {
       const response = await fetch(url, {
@@ -35,7 +39,9 @@ async function startServer() {
           'Accept': 'application/vnd.api+json'
         }
       });
+
       if (response.status === 404) {
+        console.log(`[PROXY] GLEIF returned 404 for query: ${query}`);
         return res.json({ data: [] });
       }
       if (!response.ok) {
