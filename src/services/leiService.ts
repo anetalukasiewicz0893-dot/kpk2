@@ -11,12 +11,24 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
 
     // The GLEIF API returns data in a 'data' array or object (JSON:API format)
     const data = rawApiData.data;
+    const included = rawApiData.included || [];
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     
     return records.map((record: any): EntityCard => {
       const attr = record.attributes;
       const entity = attr.entity;
       const reg = attr.registration;
+      const rels = record.relationships || {};
+
+      const getParentName = (relType: string) => {
+        const relData = rels[relType]?.data;
+        if (!relData) return "N/A";
+        const parentRecord = included.find((inc: any) => inc.type === relData.type && inc.id === relData.id);
+        return parentRecord?.attributes?.entity?.legalName?.name || relData.id || "N/A";
+      };
+
+      const directParent = getParentName("direct-parent");
+      const ultimateParent = getParentName("ultimate-parent");
 
       const formatAddress = (addr: any) => {
         if (!addr) return "N/A";
@@ -75,8 +87,8 @@ export const searchEntities = async (query: string, mode: SearchMode): Promise<E
           headquarters: formatAddress(entity.headquartersAddress)
         },
 
-        parents: [], // Parent data requires separate relationship API calls in GLEIF
-        ultimate_parent: "N/A",
+        parents: directParent !== "N/A" ? [directParent] : [],
+        ultimate_parent: ultimateParent,
 
         identifiers: [],
         

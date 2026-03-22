@@ -18,13 +18,14 @@ async function startServer() {
     if (!query) return res.status(400).json({ error: "Query is required" });
 
     let url = "";
+    const includes = "direct-parent,ultimate-parent";
     if (mode === "lei") {
-      url = `https://api.gleif.org/api/v1/lei-records/${query}`;
+      url = `https://api.gleif.org/api/v1/lei-records/${query}?include=${includes}`;
     } else if (mode === "name") {
-      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=10`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(query as string)}&page[size]=10&include=${includes}`;
     } else {
       // Use full-text search for partial mode
-      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodeURIComponent(query as string)}&page[size]=10`;
+      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodeURIComponent(query as string)}&page[size]=10&include=${includes}`;
     }
 
     try {
