@@ -2,64 +2,67 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// --- Schemas ---
+const LeiSearchSchema = z.object({
+  query: z.string().min(1),
+  mode: z.enum(["lei", "name", "partial"]).optional().default("partial"),
+});
+
+// --- Server ---
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
 
-  // API Proxy for LEI
-  app.get("/api/lei/search", async (req, res) => {
-    const { query, mode } = req.query;
-    if (!query) return res.status(400).json({ error: "Query is required" });
-
-    let url = "";
-    const includes = "direct-parent,ultimate-parent";
-    const encodedQuery = encodeURIComponent(query as string);
-
-    if (mode === "lei") {
-      url = `https://api.gleif.org/api/v1/lei-records/${encodedQuery}?include=${includes}`;
-    } else if (mode === "name") {
-      url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodedQuery}&page[size]=100&include=${includes}`;
-    } else {
-      // Use full-text search for partial mode
-      url = `https://api.gleif.org/api/v1/lei-records?filter[fulltext]=${encodedQuery}&page[size]=100&include=${includes}`;
+  /**
+   * @route GET /api/search/lei/:lei_code
+   * @desc Look up a specific entity by its 20-character LEI code.
+   */
+  app.get("/api/search/lei/:lei_code", async (req, res) => {
+    const { lei_code } = req.params;
+    if (!lei_code || lei_code.length !== 20) {
+      return res.status(400).json({ error: "Valid 20-character LEI code is required" });
     }
 
-    console.log(`[PROXY] Fetching from GLEIF: ${url}`);
-
+    const url = `https://api.gleif.org/api/v1/lei-records/${encodeURIComponent(lei_code)}`;
+    
     try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'LEI-Investigator-App/1.0',
-          'Accept': 'application/vnd.api+json'
-        }
-      });
-
-      if (response.status === 404) {
-        console.log(`[PROXY] GLEIF returned 404 for query: ${query}`);
-        return res.json({ data: [] });
-      }
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`GLEIF API Error (${response.status}):`, errorText);
-        let errorMessage = "GLEIF API Error";
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.errors?.[0]?.title || errorJson.error || errorMessage;
-        } catch (e) {
-          errorMessage = errorText || errorMessage;
-        }
-        return res.status(response.status).json({ error: errorMessage });
-      }
+      const response = await fetch(url, { headers: { 'Accept': 'application/vnd.api+json' } });
+      if (response.status === 404) return res.status(404).json({ error: "LEI not found" });
+      if (!response.ok) throw new Error(`GLEIF API returned ${response.status}`);
+      
       const data = await response.json();
-      res.json(data);
+      res.json(data.data);
     } catch (error) {
-      console.error("LEI API Proxy Error:", error);
+      console.error("LEI API Error:", error);
+      res.status(500).json({ error: "Failed to fetch from GLEIF API" });
+    }
+  });
+
+  /**
+   * @route GET /api/search/name/:name
+   * @desc Search for entities by their legal name.
+   */
+  app.get("/api/search/name/:name", async (req, res) => {
+    const { name } = req.params;
+    if (!name) return res.status(400).json({ error: "Name is required" });
+
+    const url = `https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=${encodeURIComponent(name)}&page[size]=100`;
+    
+    try {
+      const response = await fetch(url, { headers: { 'Accept': 'application/vnd.api+json' } });
+      if (!response.ok) throw new Error(`GLEIF API returned ${response.status}`);
+      
+      const data = await response.json();
+      res.json(data.data || []);
+    } catch (error) {
+      console.error("Name Search API Error:", error);
       res.status(500).json({ error: "Failed to fetch from GLEIF API" });
     }
   });
